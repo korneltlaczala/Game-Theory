@@ -46,7 +46,7 @@ class BlottoGame():
         print(f"Optimal strategy for player 1: {result1.x[:-1]}")
         print(f"Optimal strategy for player 2: {result2.x[:-1]}")
 
-class BlottoGameNoCapture(BlottoGame):
+class BlottoNoCaptureGame(BlottoGame):
 
     def score_strat(self, strat1, strat2):
         score = 0
@@ -229,7 +229,8 @@ class GroupMatrix():
 
 
 if __name__ == '__main__':
-    game = BlottoCaptureGame(player1_units=4, player2_units=3, posts=2)
+    # game = BlottoCaptureGame(player1_units=4, player2_units=3, posts=2)
+    game = BlottoNoCaptureGame(player1_units=8, player2_units=5, posts=3)
     print(game.player1)
     print(game.player2)
     game.group_matrix.show()
