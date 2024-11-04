@@ -6,7 +6,7 @@ class BlottoGame():
         self.posts = posts
         self.player1 = Player(game=self, name="Blotto", units=player1_units)
         self.player2 = Player(game=self, name="Kije", units=player2_units)
-        # self.group_matrix = self.generate_group_matrix(self.player1, self.player2)
+        self.group_matrix = GroupMatrix(game=self)
 
     def score_strat(self, strat1, strat2):
         score = 0
@@ -86,16 +86,33 @@ class StrategyGroup():
         outcome = outcome[:-2]
         return outcome
 
-class StrategyMatrix():
+class GroupMatrix():
 
     def __init__(self, game):
         self.game = game
         self.player1 = game.player1
         self.player2 = game.player2
+        self.matrix = self.generate()
 
     def generate(self):
-        return [[self.score_group(group1, group2) for group2 in player2.strat_groups] for group1 in player1.strat_groups]
+        return [[self.game.score_group(group1, group2) for group2 in self.player2.strat_groups] for group1 in self.player1.strat_groups]
+
+    def __str__(self):
+        output = f"{''.center(11)}"
+
+        for group in self.player2.strat_groups:
+            output += f"{group.name.center(11)}"
+        output += "\n"
+        
+        for group, row in zip(self.player1.strat_groups, self.matrix):
+            output += f"{group.name.center(11)}"
+            for score in row:
+                output += f"{str(score).center(11)}"
+            output += "\n"
+            
+        return output
 
 if __name__ == '__main__':
     game = BlottoGame(player1_units=8, player2_units=5, posts=3)
     print(game.player1)
+    print(game.group_matrix)
