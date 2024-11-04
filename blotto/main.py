@@ -1,4 +1,5 @@
 from itertools import combinations_with_replacement, product
+from scipy.optimize import linprog
 import numpy as np
 
 
@@ -10,6 +11,43 @@ class BlottoGame():
         self.player2 = Player(game=self, name="Kije", units=player2_units)
         self.group_matrix = GroupMatrix(game=self)
 
+    def score_group(self, group1, group2):
+        score = 0
+        for strat1 in group1.strategies:
+            for strat2 in group2.strategies:
+                score += self.score_strat(strat1, strat2)
+        score /= len(group1.strategies) * len(group2.strategies)
+        return score
+    
+    def solve_for(self, player=1):
+        self.group_matrix.simplify(strictly_dominated=False)
+
+        if player == 1:
+            matrix = self.group_matrix.simple_matrix.T
+        else:
+            matrix = self.group_matrix.simple_matrix
+
+        c = np.hstack([np.zeros(matrix.shape[1]), 1])
+        b_ub = np.zeros(matrix.shape[0])
+        A_ub = np.hstack([matrix, -np.ones((matrix.shape[0], 1))])
+        sum_is_one = np.array([np.hstack([np.ones(matrix.shape[1]), 0])])
+        one = np.array([1])
+        bounds = np.array([(0, None) for _ in range(matrix.shape[1])] + [(None, None)])
+
+        return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=sum_is_one, b_eq=one, bounds=bounds, method='highs')
+
+
+    def solve(self):
+
+        result1 = self.solve_for(player=1)
+        result2 = self.solve_for(player=2)
+
+        print(f"Value of the game: {result1.fun} = {result2.fun}")
+        print(f"Optimal strategy for player 1: {result1.x[:-1]}")
+        print(f"Optimal strategy for player 2: {result2.x[:-1]}")
+
+class BlottoGameNoCapture(BlottoGame):
+
     def score_strat(self, strat1, strat2):
         score = 0
         for i in range(self.posts):
@@ -19,14 +57,18 @@ class BlottoGame():
                 score -= 1
         return score
 
-    def score_group(self, group1, group2):
-        score = 0
-        for strat1 in group1.strategies:
-            for strat2 in group2.strategies:
-                score += self.score_strat(strat1, strat2)
-        score /= len(group1.strategies) * len(group2.strategies)
-        return score
+class BlottoCaptureGame(BlottoGame):
 
+    def score_strat(self, strat1, strat2):
+        score = 0
+        for i in range(self.posts):
+            if strat1[i] > strat2[i]:
+                score += 1
+                score += strat2[i]
+            elif strat1[i] < strat2[i]:
+                score -= 1
+                score -= strat1[i]
+        return score
 
 class Player():
     def __init__(self, game, name="Player", units=3):
@@ -187,9 +229,10 @@ class GroupMatrix():
 
 
 if __name__ == '__main__':
-    game = BlottoGame(player1_units=8, player2_units=5, posts=3)
+    game = BlottoCaptureGame(player1_units=4, player2_units=3, posts=2)
     print(game.player1)
     print(game.player2)
     game.group_matrix.show()
     game.group_matrix.simplify(strictly_dominated=False)
     game.group_matrix.show_simple()
+    game.solve()
