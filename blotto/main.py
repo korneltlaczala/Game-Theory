@@ -1,6 +1,6 @@
 from itertools import combinations_with_replacement, product
-from scipy.optimize import linprog
 import numpy as np
+import game_solver
 
 
 class BlottoGame():
@@ -18,33 +18,40 @@ class BlottoGame():
                 score += self.score_strat(strat1, strat2)
         score /= len(group1.strategies) * len(group2.strategies)
         return score
-    
-    def solve_for(self, player=1):
-        self.group_matrix.simplify(strictly_dominated=False)
-
-        if player == 1:
-            matrix = self.group_matrix.simple_matrix.T
-        else:
-            matrix = self.group_matrix.simple_matrix
-
-        c = np.hstack([np.zeros(matrix.shape[1]), 1])
-        b_ub = np.zeros(matrix.shape[0])
-        A_ub = np.hstack([matrix, -np.ones((matrix.shape[0], 1))])
-        sum_is_one = np.array([np.hstack([np.ones(matrix.shape[1]), 0])])
-        one = np.array([1])
-        bounds = np.array([(0, None) for _ in range(matrix.shape[1])] + [(None, None)])
-
-        return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=sum_is_one, b_eq=one, bounds=bounds, method='highs')
-
 
     def solve(self):
+        if not self.group_matrix.simplified:
+            matrix = self.group_matrix.matrix
+        else:
+            matrix = self.group_matrix.simple_matrix
+        game_solver.solve(matrix)
+    
+    # def solve_for(self, player=1):
+    #     self.group_matrix.simplify(strictly_dominated=False)
 
-        result1 = self.solve_for(player=1)
-        result2 = self.solve_for(player=2)
+    #     if player == 1:
+    #         matrix = self.group_matrix.simple_matrix.T
+    #     else:
+    #         matrix = self.group_matrix.simple_matrix
 
-        print(f"Value of the game: {result1.fun} = {result2.fun}")
-        print(f"Optimal strategy for player 1: {result1.x[:-1]}")
-        print(f"Optimal strategy for player 2: {result2.x[:-1]}")
+    #     c = np.hstack([np.zeros(matrix.shape[1]), 1])
+    #     b_ub = np.zeros(matrix.shape[0])
+    #     A_ub = np.hstack([matrix, -np.ones((matrix.shape[0], 1))])
+    #     sum_is_one = np.array([np.hstack([np.ones(matrix.shape[1]), 0])])
+    #     one = np.array([1])
+    #     bounds = np.array([(0, None) for _ in range(matrix.shape[1])] + [(None, None)])
+
+    #     return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=sum_is_one, b_eq=one, bounds=bounds, method='highs')
+
+
+    # def solve(self):
+
+    #     result1 = self.solve_for(player=1)
+    #     result2 = self.solve_for(player=2)
+
+    #     print(f"Value of the game: {result1.fun} = {result2.fun}")
+    #     print(f"Optimal strategy for player 1: {result1.x[:-1]}")
+    #     print(f"Optimal strategy for player 2: {result2.x[:-1]}")
 
 class BlottoNoCaptureGame(BlottoGame):
 
@@ -140,6 +147,7 @@ class GroupMatrix():
         self.player2 = game.player2
         self.matrix = self.generate()
         self.num_rows, self.num_columns = self.matrix.shape
+        self.simplified = False
 
     def generate(self):
         return np.array([[self.game.score_group(group1, group2) for group2 in self.player2.strat_groups] for group1 in self.player1.strat_groups])
@@ -156,6 +164,7 @@ class GroupMatrix():
             break
 
         self.simple_matrix = self.matrix[self.active_rows, :][:, self.active_columns]
+        self.simplified = True
 
     def dominates(self, entry_a, entry_b, strictly_dominated=True):
         if strictly_dominated:
