@@ -10,6 +10,7 @@ class BlottoGame():
         self.player1 = Player(game=self, name="Blotto", units=player1_units)
         self.player2 = Player(game=self, name="Kije", units=player2_units)
         self.group_matrix = GroupMatrix(game=self)
+        self.solver = None
 
     def score_group(self, group1, group2):
         score = 0
@@ -24,34 +25,9 @@ class BlottoGame():
             matrix = self.group_matrix.matrix
         else:
             matrix = self.group_matrix.simple_matrix
-        game_solver.solve(matrix)
-    
-    # def solve_for(self, player=1):
-    #     self.group_matrix.simplify(strictly_dominated=False)
-
-    #     if player == 1:
-    #         matrix = self.group_matrix.simple_matrix.T
-    #     else:
-    #         matrix = self.group_matrix.simple_matrix
-
-    #     c = np.hstack([np.zeros(matrix.shape[1]), 1])
-    #     b_ub = np.zeros(matrix.shape[0])
-    #     A_ub = np.hstack([matrix, -np.ones((matrix.shape[0], 1))])
-    #     sum_is_one = np.array([np.hstack([np.ones(matrix.shape[1]), 0])])
-    #     one = np.array([1])
-    #     bounds = np.array([(0, None) for _ in range(matrix.shape[1])] + [(None, None)])
-
-    #     return linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=sum_is_one, b_eq=one, bounds=bounds, method='highs')
-
-
-    # def solve(self):
-
-    #     result1 = self.solve_for(player=1)
-    #     result2 = self.solve_for(player=2)
-
-    #     print(f"Value of the game: {result1.fun} = {result2.fun}")
-    #     print(f"Optimal strategy for player 1: {result1.x[:-1]}")
-    #     print(f"Optimal strategy for player 2: {result2.x[:-1]}")
+        
+        self.solver = game_solver.Solver(matrix)
+        self.solver.display_result()
 
 class BlottoNoCaptureGame(BlottoGame):
 
@@ -63,6 +39,7 @@ class BlottoNoCaptureGame(BlottoGame):
             elif strat1[i] < strat2[i]:
                 score -= 1
         return score
+
 
 class BlottoCaptureGame(BlottoGame):
 
@@ -76,6 +53,7 @@ class BlottoCaptureGame(BlottoGame):
                 score -= 1
                 score -= strat1[i]
         return score
+
 
 class Player():
     def __init__(self, game, name="Player", units=3):
@@ -207,7 +185,6 @@ class GroupMatrix():
                     return True
 
     def __str__(self, simple=False):
-
         matrix_to_use = self.simple_matrix if simple else self.matrix
         p1_strat_groups = np.array(self.player1.strat_groups)
         p2_strat_groups = np.array(self.player2.strat_groups)
@@ -237,7 +214,7 @@ class GroupMatrix():
         print(self.__str__(simple=True))
 
 
-if __name__ == '__main__':
+def play_game():
     # game = BlottoCaptureGame(player1_units=4, player2_units=3, posts=2)
     game = BlottoNoCaptureGame(player1_units=8, player2_units=5, posts=3)
     print(game.player1)
@@ -246,3 +223,7 @@ if __name__ == '__main__':
     game.group_matrix.simplify(strictly_dominated=False)
     game.group_matrix.show_simple()
     game.solve()
+    return game
+
+if __name__ == '__main__':
+    pass
