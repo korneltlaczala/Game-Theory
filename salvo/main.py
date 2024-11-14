@@ -6,10 +6,11 @@ class SalvoGame:
     def __init__(self, board_size=3):
         self.board_size = board_size
         self.reset_board()
-        self.generate_p1_strats()
-        self.generate_p2_strats()
-        self.p1_strat_groups = []
-        self.p2_strat_groups = []
+        self.p1_strats = self.generate_p1_strats()
+        self.p2_strats = self.generate_p2_strats()
+        self.payoff_matrix = self.generate_payoff_matrix()
+        self.p1_strat_groups = None
+        self.p2_strat_groups = None
 
     def reset_board(self):
         self.board = [0 for i in range(self.board_size*self.board_size)]
@@ -24,29 +25,32 @@ class SalvoGame:
         print("-----------------")
 
     def generate_p1_strats(self):
-        self.p1_strats = []
+        p1_strats = []
         for i in range(self.board_size):
             for j in range(self.board_size-1):
                 f1 = i*self.board_size + j+1
                 f2 = i*self.board_size + j+2
-                self.p1_strats.append((f1, f2))
+                p1_strats.append((f1, f2))
         for i in range(self.board_size-1):
             for j in range(self.board_size):
                 f1 = i*self.board_size + j+1
                 f2 = (i+1)*self.board_size + j+1
-                self.p1_strats.append((f1, f2))
-        self.p1_strats
+                p1_strats.append((f1, f2))
+        
+        return p1_strats
 
     def generate_p2_strats(self):
-        self.p2_strats = list(permutations(range(1, self.board_size*self.board_size + 1)))
+        return list(permutations(range(1, self.board_size*self.board_size + 1)))
 
     def generate_payoff_matrix(self):
-        self.payoff_matrix = []
-        for p1_strat in self.p1_strats:
-            row = []
-            for p2_strat in self.p2_strats:
-                row.append(self.get_payoff(p1_strat, p2_strat))
-            self.payoff_matrix.append(row)
+        payoff_matrix = np.zeros((len(self.p1_strats), len(self.p2_strats)))
+        for i, p1_strat in enumerate(self.p1_strats):
+            for j, p2_strat in enumerate(self.p2_strats):
+                payoff_matrix[i][j] = self.get_payoff(p1_strat, p2_strat)
+        return payoff_matrix
+
+    def generate_p1_group_payoff_matrix(self):
+        pass
 
     def get_payoff(self, p1_strat, p2_strat):
         hits = 0
@@ -58,12 +62,17 @@ class SalvoGame:
                 return i+1
         return -1
 
-    def display_payoff_matrix(self):
-        for i, row in enumerate(self.payoff_matrix):
-            print(self.p1_strats[i], end="\t")
-            print(np.mean(row))
+    def display_payoff_matrix(self, group=False):
+        m, n = self.payoff_matrix.shape
+        for i in range(n):
+            col = self.payoff_matrix[:, i]
+            print(self.p2_strats[i], end="\t")
+            print(np.mean(col))
+        # for i, row in enumerate(self.payoff_matrix):
+        #     print(self.p1_strats[i], end="\t")
+        #     print(np.mean(row))
     
-class StrategyGroup():
+class P1_StrategyGroup():
     def __init__(self, name="untitled"):
         self.strategies = []
         self.name = name
@@ -91,8 +100,9 @@ class StrategyGroup():
 
 if __name__ == '__main__':
     game = SalvoGame()
-    p1_sg1 = StrategyGroup(name="[1,2]*")
-    p1_sg2 = StrategyGroup(name="[2,5]*")
+
+    p1_sg1 = P1_StrategyGroup(name="[1,2]*")
+    p1_sg2 = P1_StrategyGroup(name="[2,5]*")
 
     for strat in game.p1_strats:
         if 5 not in strat:
@@ -103,11 +113,4 @@ if __name__ == '__main__':
     print(p1_sg1)
     print(p1_sg2)
 
-    p2_sg1 = StrategyGroup(name="Center")
-    p2_sg2 = StrategyGroup(name="Border")
-    CENTER = {5}
-    BORDER = {2, 4, 6, 8}
-    CORNER = {1, 3, 7, 9}
-    for strat in game.p2_strats:
-        if strat[0] in CENTER and strat[1:5] in BORDER:
-            p2_sg1.add_strategy()
+    game.display_payoff_matrix()
