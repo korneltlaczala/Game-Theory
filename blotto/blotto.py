@@ -1,6 +1,6 @@
 from itertools import combinations_with_replacement, product
 import numpy as np
-import old_solver
+import game_solver
 
 
 class BlottoGame():
@@ -26,8 +26,9 @@ class BlottoGame():
         else:
             matrix = self.group_matrix.simple_matrix
         
-        self.solver = old_solver.Solver(matrix)
-        self.solver.display_result()
+        self.solver = game_solver.Solver(matrix)
+        self.solver.solve()
+        self.solver.display_solution()
 
 class BlottoNoCaptureGame(BlottoGame):
 

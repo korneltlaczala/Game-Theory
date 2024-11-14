@@ -1,6 +1,6 @@
-from game_solver import Solver
+import game_solver
 
 A = [[3, 2], [1, 4]]
-solver = Solver(matrix=A)
+game_solver.solve(A)
 
 

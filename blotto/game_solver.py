@@ -17,7 +17,7 @@ class Solver():
     
     def run(self):
         self.solve()
-        self.display_result()
+        self.display_solution()
         self.compare_player_values()
 
     def solve_for(self, player=1):
@@ -42,10 +42,11 @@ class Solver():
         result.fun *= coeff
         return result
 
-    def display_result(self):
+    def display_solution(self):
         value = round(self.value, 2)
         strats1 = [round(x, 2) for x in self.strats1]
         strats2 = [round(x, 2) for x in self.strats2]
+
         print(f"Value of the game: {value}")
         print(f"Optimal strategy for player 1: {strats1}")
         print(f"Optimal strategy for player 2: {strats2}")
