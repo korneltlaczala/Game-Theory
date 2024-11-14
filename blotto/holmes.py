@@ -1,12 +1,17 @@
 # page 8
 # Holmes vs. Moriarty
 
+import old_solver
 import game_solver
+
 matrix = [[100, -50],
           [0, 100]]
-solver = game_solver.Solver(matrix)
+
+solver = old_solver.Solver(matrix)
 solver.display_matrix()
+print(f"========== solver 1 ==========")
 solver.display_result()
 
-print(solver.partial_payoff(1))
-print(solver.partial_payoff(2))
+print(f"========== solver 2 ==========")
+game_solver = game_solver.Solver(matrix)
+game_solver.display_matrix()

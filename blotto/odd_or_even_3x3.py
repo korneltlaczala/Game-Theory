@@ -1,11 +1,11 @@
 # page 
 # Saddle Points
 
-import game_solver
+import old_solver
 matrix = [[0, 1, -2],
           [1, -2, 3],
           [-2, 3, -4]]
-solver = game_solver.Solver(matrix)
+solver = old_solver.Solver(matrix)
 solver.display_matrix()
 solver.display_result()
 
