@@ -216,7 +216,6 @@ class GroupMatrix():
 
 
 def play_game():
-    # game = BlottoCaptureGame(player1_units=4, player2_units=3, posts=2)
     game = BlottoNoCaptureGame(player1_units=8, player2_units=5, posts=3)
     print(game.player1)
     print(game.player2)
@@ -227,4 +226,4 @@ def play_game():
     return game
 
 if __name__ == '__main__':
-    pass
+    play_game()
